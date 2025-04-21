@@ -262,7 +262,14 @@ public static class FileTasks
                     return;
                 }
 
-                decimal maxPrice = toys.Max(t => t.Price); //самая высокая цена
+                decimal maxPrice = decimal.MinValue;
+                foreach (Toy toy in toys)
+                {
+                    if (toy.Price > maxPrice)
+                    {
+                        maxPrice = toy.Price;
+                    }
+                }
 
                 Console.WriteLine("\nСамые дорогие игрушки:");
                 foreach (Toy toy in toys)
@@ -343,189 +350,226 @@ public static class FileTasks
     }
 
     // 7 задание
-public static void ProcessLinkedListTask()
-{
-    try
+    public static void ProcessLinkedListTask()
     {
-        // Создаем связанный список с случайными символами
-        LinkedList<char> list = new LinkedList<char>(GenerateRandomCharList(10));
-        Console.WriteLine("Исходный список: " + LinkedListToString(list));
-
-        // Удаляем элементы, у которых соседи равны
-        RemoveElementsWithSameNeighbors(list);
-
-        Console.WriteLine("Результат: " + LinkedListToString(list));
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Ошибка: {ex.Message}");
-    }
-}
-
-private static void RemoveElementsWithSameNeighbors(LinkedList<char> list)
-{
-    if (list.Count < 2) return; // Если элементов меньше двух, ничего удалять не нужно
-
-    LinkedListNode<char> current = list.First;
-
-    while (current != null)
-    {
-        // определяем следующий и предыдущий элементы, учитывая цикличность списка
-        LinkedListNode<char> next = current.Next ?? list.First; 
-        LinkedListNode<char> prev = current.Previous ?? list.Last;
-
-       
-        if (prev.Value == next.Value)
+        try
         {
-            LinkedListNode<char> toRemove = current; // Запоминаем элемент для удаления
-            current = current.Next;
-            list.Remove(toRemove); 
+            // Создаем связанный список с случайными символами
+            LinkedList<char> list = new LinkedList<char>(GenerateRandomCharList(10));
+            Console.WriteLine("Исходный список: " + LinkedListToString(list));
+
+            // Удаляем элементы, у которых соседи равны
+            RemoveElementsWithSameNeighbors(list);
+
+            Console.WriteLine("Результат: " + LinkedListToString(list));
         }
-        else
+        catch (Exception ex)
         {
-            current = current.Next;
+            Console.WriteLine($"Ошибка: {ex.Message}");
         }
     }
-}
 
-// 8 задание
-public static void AnalyzeFurniturePurchases()
-{
-    try
+    private static void RemoveElementsWithSameNeighbors(LinkedList<char> list)
     {
-        int factoryCount = TestInput.GetInt("Введите количество фабрик: ", 1, 100);
-        int buyerCount = TestInput.GetInt("Введите количество покупателей: ", 1, 100);
+        if (list.Count < 2) return; // Если элементов меньше двух, ничего удалять не нужно
 
-        List<string> factories = Enumerable.Range(1, factoryCount).Select(i => $"Фабрика{i}").ToList();
-        List<string> buyers = Enumerable.Range(1, buyerCount).Select(i => $"Покупатель{i}").ToList();
+        LinkedListNode<char> current = list.First;
 
-        Dictionary<string, HashSet<string>> purchases = new Dictionary<string, HashSet<string>>();
-
-        foreach (var factory in factories)
+        while (current != null)
         {
-            var factoryBuyers = new HashSet<string>();
-            int buyerCountForFactory = _random.Next(1, buyers.Count + 1);
+            // определяем следующий и предыдущий элементы, учитывая цикличность списка
+            LinkedListNode<char> next = current.Next ?? list.First; 
+            LinkedListNode<char> prev = current.Previous ?? list.Last;
 
-            while (factoryBuyers.Count < buyerCountForFactory)
+        
+            if (prev.Value == next.Value)
             {
-                string buyer = buyers[_random.Next(buyers.Count)];
-                factoryBuyers.Add(buyer);
+                LinkedListNode<char> toRemove = current; // Запоминаем элемент для удаления
+                current = current.Next;
+                list.Remove(toRemove); 
             }
-
-            purchases[factory] = factoryBuyers;
-        }
-
-        // Анализ данных
-        HashSet<string> allBuyers = new HashSet<string>(buyers);
-        HashSet<string> boughtByAll = new HashSet<string>(allBuyers);
-        HashSet<string> boughtBySome = new HashSet<string>();
-        HashSet<string> boughtByNone = new HashSet<string>(allBuyers);
-
-        foreach (var factory in purchases.Values)
-        {
-            boughtByAll.IntersectWith(factory); // пересечение для "купивших у всех"
-            boughtBySome.UnionWith(factory);   // объединение для "купивших у некоторых"
-        }
-
-        boughtByNone.ExceptWith(boughtBySome); // разница для "не купивших ни у кого"
-
-        // вывод результатов
-        Console.WriteLine("\nАнализ покупок по фабрикам:");
-        foreach (var factory in purchases)
-        {
-            Console.WriteLine($"\nФабрика: {factory.Key}");
-            Console.WriteLine("Покупатели: " + string.Join(", ", factory.Value));
-        }
-
-        Console.WriteLine("\nОбщие результаты:");
-        Console.WriteLine("Покупатели, купившие мебель всех фабрик: " +
-            (boughtByAll.Count > 0 ? string.Join(", ", boughtByAll) : "нет"));
-        Console.WriteLine("Покупатели, купившие мебель хотя бы одной фабрики: " +
-            (boughtBySome.Count > 0 ? string.Join(", ", boughtBySome) : "нет"));
-        Console.WriteLine("Покупатели, не купившие мебель ни одной фабрики: " +
-            (boughtByNone.Count > 0 ? string.Join(", ", boughtByNone) : "нет"));
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Ошибка: {ex.Message}");
-    }
-}
-
-// 9 задание
-public static void AnalyzeRussianConsonants(string filePath)
-{
-    try
-    {
-        if (!File.Exists(filePath))
-        {
-            Console.WriteLine("Файл не найден!");
-            return;
-        }
-
-        var deafConsonants = new HashSet<char> { 'п', 'ф', 'к', 'т', 'ш', 'с', 'х', 'ц', 'ч', 'щ' };
-
-        string text = File.ReadAllText(filePath).ToLower(); 
-        var words = text.Split(
-            new[] { ' ', ',', '.', '!', '?', ';', ':', '\n', '\r', '\t', '-', '—', '(', ')', '"' },
-            StringSplitOptions.RemoveEmptyEntries);
-
-        if (words.Length < 2)
-        {
-            Console.WriteLine("Текст должен содержать как минимум 2 слова!");
-            return;
-        }
-
-        // собираем согласные из нечётных слов (1, 3, 5...)
-        var oddWordsConsonants = new List<HashSet<char>>();
-        // собираем все согласные из чётных слов (2, 4, 6...)
-        var evenWordsConsonants = new HashSet<char>();
-
-        for (int i = 0; i < words.Length; i++)
-        {
-            var currentConsonants = new HashSet<char>(
-                words[i].Where(c => deafConsonants.Contains(c)));
-
-            if ((i + 1) % 2 == 1) 
+            else
             {
-                oddWordsConsonants.Add(currentConsonants);
-            }
-            else 
-            {
-                evenWordsConsonants.UnionWith(currentConsonants);
+                current = current.Next;
             }
         }
-
-        // находим согласные, которые есть во ВСЕХ нечётных словах
-        var commonInOdd = oddWordsConsonants.Count > 0
-            ? new HashSet<char>(oddWordsConsonants[0])
-            : new HashSet<char>();
-
-        foreach (var consonants in oddWordsConsonants.Skip(1))
-        {
-            commonInOdd.IntersectWith(consonants);
-        }
-
-        // Оставляем только те, которых НЕТ ХОТЯ БЫ В ОДНОМ чётном слове
-        var result = commonInOdd
-            .Where(c => !evenWordsConsonants.Contains(c))
-            .OrderBy(c => c)
-            .ToList();
-
-        Console.WriteLine("\nРезультат анализа:");
-        if (result.Count > 0)
-        {
-            Console.WriteLine(string.Join(", ", result));
-        }
-        else
-        {
-            Console.WriteLine("Нет глухих согласных, удовлетворяющих условиям.");
-        }
     }
-    catch (Exception ex)
+
+    // 8 задание
+    public static void AnalyzeFurniturePurchases()
     {
-        Console.WriteLine($"Ошибка: {ex.Message}");
+        try
+        {
+            int factoryCount = TestInput.GetInt("Введите количество фабрик: ", 1, 100);
+            int buyerCount = TestInput.GetInt("Введите количество покупателей: ", 1, 100);
+
+        List<string> factories = new List<string>();
+            for (int i = 1; i <= factoryCount; i++)
+            {
+                factories.Add($"Фабрика{i}");
+            }
+
+            List<string> buyers = new List<string>();
+            for (int i = 1; i <= buyerCount; i++)
+            {
+                buyers.Add($"Покупатель{i}");
+            }
+
+            Dictionary<string, HashSet<string>> purchases = new Dictionary<string, HashSet<string>>();
+
+            foreach (var factory in factories)
+            {
+                var factoryBuyers = new HashSet<string>();
+                int buyerCountForFactory = _random.Next(1, buyers.Count + 1);
+
+                while (factoryBuyers.Count < buyerCountForFactory)
+                {
+                    string buyer = buyers[_random.Next(buyers.Count)];
+                    factoryBuyers.Add(buyer);
+                }
+
+                purchases[factory] = factoryBuyers;
+            }
+
+            // Анализ данных
+            HashSet<string> allBuyers = new HashSet<string>(buyers);
+            HashSet<string> boughtByAll = new HashSet<string>(allBuyers);
+            HashSet<string> boughtBySome = new HashSet<string>();
+            HashSet<string> boughtByNone = new HashSet<string>(allBuyers);
+
+            foreach (var factory in purchases.Values)
+            {
+                boughtByAll.IntersectWith(factory); // пересечение для "купивших у всех"
+                boughtBySome.UnionWith(factory);   // объединение для "купивших у некоторых"
+            }
+
+            boughtByNone.ExceptWith(boughtBySome); // разница для "не купивших ни у кого"
+
+            // вывод результатов
+            Console.WriteLine("\nАнализ покупок по фабрикам:");
+            foreach (var factory in purchases)
+            {
+                Console.WriteLine($"\nФабрика: {factory.Key}");
+                Console.WriteLine("Покупатели: " + string.Join(", ", factory.Value));
+            }
+
+            Console.WriteLine("\nОбщие результаты:");
+            Console.WriteLine("Покупатели, купившие мебель всех фабрик: " +
+                (boughtByAll.Count > 0 ? string.Join(", ", boughtByAll) : "нет"));
+            Console.WriteLine("Покупатели, купившие мебель хотя бы одной фабрики: " +
+                (boughtBySome.Count > 0 ? string.Join(", ", boughtBySome) : "нет"));
+            Console.WriteLine("Покупатели, не купившие мебель ни одной фабрики: " +
+                (boughtByNone.Count > 0 ? string.Join(", ", boughtByNone) : "нет"));
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка: {ex.Message}");
+        }
     }
-}
+
+    // 9 задание
+    public static void AnalyzeRussianConsonants(string filePath)
+    {
+        try
+        {
+            if (!File.Exists(filePath))
+            {
+                Console.WriteLine("Файл не найден!");
+                return;
+            }
+
+            char[] deafConsonantsArray = { 'п', 'ф', 'к', 'т', 'ш', 'с', 'х', 'ц', 'ч', 'щ' };
+            HashSet<char> deafConsonants = new HashSet<char>(deafConsonantsArray);
+
+            string text = File.ReadAllText(filePath).ToLower();
+            char[] separators = { ' ', ',', '.', '!', '?', ';', ':', '\n', '\r', '\t', '-', '—', '(', ')', '"' };
+            string[] words = text.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+
+            if (words.Length < 2)
+            {
+                Console.WriteLine("Текст должен содержать как минимум 2 слова!");
+                return;
+            }
+
+            List<HashSet<char>> oddWordsConsonants = new List<HashSet<char>>();
+            HashSet<char> evenWordsConsonants = new HashSet<char>();
+
+            for (int i = 0; i < words.Length; i++)
+            {
+                HashSet<char> currentConsonants = new HashSet<char>();
+                foreach (char c in words[i])
+                {
+                    if (deafConsonants.Contains(c))
+                    {
+                        currentConsonants.Add(c);
+                    }
+                }
+
+                if ((i + 1) % 2 == 1)
+                {
+                    oddWordsConsonants.Add(currentConsonants);
+                }
+                else
+                {
+                    foreach (char c in currentConsonants)
+                    {
+                        evenWordsConsonants.Add(c);
+                    }
+                }
+            }
+
+            HashSet<char> commonInOdd = new HashSet<char>();
+            if (oddWordsConsonants.Count > 0)
+            {
+                commonInOdd = new HashSet<char>(oddWordsConsonants[0]);
+                for (int i = 1; i < oddWordsConsonants.Count; i++)
+                {
+                    HashSet<char> temp = new HashSet<char>();
+                    foreach (char c in commonInOdd)
+                    {
+                        if (oddWordsConsonants[i].Contains(c))
+                        {
+                            temp.Add(c);
+                        }
+                    }
+                    commonInOdd = temp;
+                }
+            }
+
+            List<char> result = new List<char>();
+            foreach (char c in commonInOdd)
+            {
+                if (!evenWordsConsonants.Contains(c))
+                {
+                    result.Add(c);
+                }
+            }
+
+            result.Sort();
+
+            Console.WriteLine("\nРезультат анализа:");
+            if (result.Count > 0)
+            {
+                for (int i = 0; i < result.Count; i++)
+                {
+                    if (i > 0)
+                    {
+                        Console.Write(", ");
+                    }
+                    Console.Write(result[i]);
+                }
+                Console.WriteLine();
+            }
+            else
+            {
+                Console.WriteLine("Нет глухих согласных, удовлетворяющих условиям.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка: {ex.Message}");
+        }
+    }
 
 // 10 задание
 public static void AnalyzeCheapestSourCream(string filePath)
@@ -605,7 +649,7 @@ public static void AnalyzeCheapestSourCream(string filePath)
         List<char> chars = new List<char>();
         for (int i = 0; i < length; i++)
         {
-            chars.Add(CharPool[_random.Next(CharPool.Length)]);
+            chars.Add(CharPool[_random.Next(0, CharPool.Length)]);
         }
         return chars;
     }
